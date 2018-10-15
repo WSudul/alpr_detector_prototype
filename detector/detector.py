@@ -3,7 +3,7 @@ import cv2
 from openalpr import Alpr
 import sys
 
-VIDEO_SOURCE = 'samples/hispeed.mp4'
+VIDEO_SOURCE = '../resources/videos/eu-clip.mp4'
 WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 5
 
@@ -24,8 +24,14 @@ def main():
 
     _frame_number = 0
     a = datetime.datetime.now()
+
     while True:
+        _frame_number += 1
+        if _frame_number % FRAME_SKIP != 0:
+            continue
+
         ret_val, frame = cap.read()
+
         if not ret_val:
             print('VidepCapture.read() failed. Exiting...')
             b = datetime.datetime.now()
@@ -33,9 +39,6 @@ def main():
             print(c.total_seconds(), c.seconds, c.microseconds)
             break
 
-        _frame_number += 1
-        if _frame_number % FRAME_SKIP != 0:
-            continue
         cv2.imshow(WINDOW_NAME, frame)
 
         ret, enc = cv2.imencode("*.bmp", frame)
