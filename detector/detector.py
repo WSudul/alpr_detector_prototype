@@ -1,5 +1,4 @@
 import datetime
-import numpy as np
 import cv2
 from openalpr import Alpr
 import sys
@@ -7,6 +6,7 @@ import sys
 VIDEO_SOURCE = 'samples/hispeed.mp4'
 WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 5
+
 
 def main():
     alpr = Alpr('eu', '../resources/openalpr.conf', '../resources/runtime_data')
@@ -25,7 +25,6 @@ def main():
     _frame_number = 0
     a = datetime.datetime.now()
     while True:
-        # print(_frame_number)
         ret_val, frame = cap.read()
         if not ret_val:
             print('VidepCapture.read() failed. Exiting...')
@@ -42,13 +41,11 @@ def main():
         ret, enc = cv2.imencode("*.bmp", frame)
         results = alpr.recognize_array(bytes(bytearray(enc)))
 
-        # results = alpr.recognize_array(bytes(bytearray(frame))) #alpr.recognize_ndarray(frame)
+        # todo: use recognize_ndarray when updated to at least 2.3.1
+        # alpr.recognize_ndarray(frame)
         for i, plate in enumerate(results['results']):
             best_candidate = plate['candidates'][0]
             print('Plate #{}: {:7s} ({:.2f}%)'.format(i, best_candidate['plate'].upper(), best_candidate['confidence']))
-
-        if cv2.waitKey(1) == 27:
-            break
 
     cv2.destroyAllWindows()
     cap.release()
