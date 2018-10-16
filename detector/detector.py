@@ -8,6 +8,42 @@ WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 12
 
 
+class Detector:
+
+    def __init__(self, alpr_instance, video_source, frame_skip=FRAME_SKIP):
+        self.alpr_instance = alpr_instance
+        self.frame_skip = frame_skip
+        self.video_source = video_source
+        self._cap = cv2.VideoCapture(video_source)
+        self._last_read_status = False
+
+    def is_working(self):
+        return self._cap.isOpened() and self._last_read_status
+
+    def run(self):
+        frame_number = 0
+        while True:
+            self._last_read_status, frame = self._cap.read()
+
+            if not self._last_read_status:
+                print('VidepCapture.read() failed. Exiting...')
+                break
+
+            frame_number += 1
+            if frame_number % self.frame_skip != 0:
+                continue
+
+            ret, enc = cv2.imencode("*.bmp", frame)
+            results = self.alpr.recognize_array(bytes(bytearray(enc)))
+
+            # todo: use recognize_ndarray when updated to at least 2.3.1
+            # alpr.recognize_ndarray(frame)
+            for i, plate in enumerate(results['results']):
+                best_candidate = plate['candidates'][0]
+                print('Plate #{}: {:7s} ({:.2f}%)'.format(i, best_candidate['plate'].upper(),
+                                                          best_candidate['confidence']))
+        
+
 def video_source_properties(cap):
     data = dict()
     data['fps'] = cap.get(cv2.CAP_PROP_FPS)
