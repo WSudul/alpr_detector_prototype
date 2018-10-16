@@ -3,9 +3,9 @@ import cv2
 from openalpr import Alpr
 import sys
 
-VIDEO_SOURCE = '../resources/videos/eu-clip.mp4'
+VIDEO_SOURCE = '0'  # default webcam address
 WINDOW_NAME = 'openalpr'
-FRAME_SKIP = 5
+FRAME_SKIP = 12
 
 
 def main():
