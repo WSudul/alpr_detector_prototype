@@ -3,9 +3,18 @@ import cv2
 from openalpr import Alpr
 import sys
 
-VIDEO_SOURCE = '0'  # default webcam address
+VIDEO_SOURCE = 0  # default webcam address
 WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 12
+
+
+def video_source_properties(cap):
+    data = dict()
+    data['fps'] = cap.get(cv2.CAP_PROP_FPS)
+    data['width'] = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    data['height'] = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    data['codec'] = cap.get(cv2.CAP_PROP_FOURCC)
+    print('Video source properties ', str(data))
 
 
 def main():
@@ -19,6 +28,9 @@ def main():
     if not cap.isOpened():
         alpr.unload()
         sys.exit('Failed to open video file!')
+
+    video_source_properties(cap)
+
     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
     cv2.setWindowTitle(WINDOW_NAME, 'OpenALPR video test')
 
