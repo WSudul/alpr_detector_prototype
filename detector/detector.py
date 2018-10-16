@@ -24,12 +24,7 @@ def main():
 
     _frame_number = 0
     a = datetime.datetime.now()
-
     while True:
-        _frame_number += 1
-        if _frame_number % FRAME_SKIP != 0:
-            continue
-
         ret_val, frame = cap.read()
 
         if not ret_val:
@@ -39,6 +34,9 @@ def main():
             print(c.total_seconds(), c.seconds, c.microseconds)
             break
 
+        _frame_number += 1
+        if _frame_number % FRAME_SKIP != 0:
+            continue
         cv2.imshow(WINDOW_NAME, frame)
 
         ret, enc = cv2.imencode("*.bmp", frame)
