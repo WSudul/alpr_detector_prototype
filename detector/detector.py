@@ -60,6 +60,9 @@ def main():
             best_candidate = plate['candidates'][0]
             print('Plate #{}: {:7s} ({:.2f}%)'.format(i, best_candidate['plate'].upper(), best_candidate['confidence']))
 
+        if cv2.waitKey(1) == 27:
+            break
+
     cv2.destroyAllWindows()
     cap.release()
     alpr.unload()
