@@ -8,25 +8,44 @@ WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 12
 
 
+def video_source_properties(cap):
+    data = dict()
+    data['fps'] = cap.get(cv2.CAP_PROP_FPS)
+    data['width'] = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    data['height'] = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    data['codec'] = cap.get(cv2.CAP_PROP_FOURCC)
+    print('Video source properties ', str(data))
+
+
 class Detector:
 
     def __init__(self, alpr_instance, video_source, frame_skip=FRAME_SKIP):
         self.alpr_instance = alpr_instance
         self.frame_skip = frame_skip
-        self.video_source = video_source
+        self._video_source = video_source
         self._cap = cv2.VideoCapture(video_source)
-        self._last_read_status = False
+        self._running = False
 
     def is_working(self):
-        return self._cap.isOpened() and self._last_read_status
+        return self._cap.isOpened() and self._running
+
+    def video_source_properties(self):
+        data = dict()
+        data['source'] = self._video_source
+        data['fps'] = self._cap.get(cv2.CAP_PROP_FPS)
+        data['width'] = self._cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        data['height'] = self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        data['codec'] = self._cap.get(cv2.CAP_PROP_FOURCC)
+        return data
 
     def run(self):
         frame_number = 0
-        while True:
-            self._last_read_status, frame = self._cap.read()
+        while self._running:
+            last_read_status, frame = self._cap.read()
 
-            if not self._last_read_status:
+            if not last_read_status:
                 print('VidepCapture.read() failed. Exiting...')
+                self._running = False
                 break
 
             frame_number += 1
@@ -42,17 +61,10 @@ class Detector:
                 best_candidate = plate['candidates'][0]
                 print('Plate #{}: {:7s} ({:.2f}%)'.format(i, best_candidate['plate'].upper(),
                                                           best_candidate['confidence']))
+
+    def stop(self):
+        self._running = False
         
-
-def video_source_properties(cap):
-    data = dict()
-    data['fps'] = cap.get(cv2.CAP_PROP_FPS)
-    data['width'] = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    data['height'] = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    data['codec'] = cap.get(cv2.CAP_PROP_FOURCC)
-    print('Video source properties ', str(data))
-
-
 def main():
     alpr = Alpr('eu', '../resources/openalpr.conf', '../resources/runtime_data')
     if not alpr.is_loaded():
