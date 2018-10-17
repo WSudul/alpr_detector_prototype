@@ -40,31 +40,52 @@ class Detector:
 
     def run(self):
         frame_number = 0
-        while self._running:
-            last_read_status, frame = self._cap.read()
+        if not self.is_working():
+            print('Video capture not working.');
+            return False
 
-            if not last_read_status:
-                print('VidepCapture.read() failed. Exiting...')
-                self._running = False
-                break
+        if self._running:
+            print('Detector is already running')
+            return False
 
-            frame_number += 1
-            if frame_number % self.frame_skip != 0:
-                continue
+        error_state = False
+        try:
+            while self._running:
+                last_read_status, frame = self._cap.read()
 
-            ret, enc = cv2.imencode("*.bmp", frame)
-            results = self.alpr.recognize_array(bytes(bytearray(enc)))
+                if not last_read_status:
+                    print('Video capture.read() failed. Stopping the work')
+                    self._running = False
+                    error_state = True
+                    break
 
-            # todo: use recognize_ndarray when updated to at least 2.3.1
-            # alpr.recognize_ndarray(frame)
-            for i, plate in enumerate(results['results']):
-                best_candidate = plate['candidates'][0]
-                print('Plate #{}: {:7s} ({:.2f}%)'.format(i, best_candidate['plate'].upper(),
-                                                          best_candidate['confidence']))
+                frame_number += 1
+                if frame_number % self.frame_skip != 0:
+                    frame_number = 0
+                    continue
+
+                ret, enc = cv2.imencode("*.bmp", frame)
+                results = self.alpr.recognize_array(bytes(bytearray(enc)))
+
+                # todo: use recognize_ndarray when updated to at least 2.3.1
+                # alpr.recognize_ndarray(frame)
+                for i, plate in enumerate(results['results']):
+                    best_candidate = plate['candidates'][0]
+                    print('Plate #{}: {:7s} ({:.2f}%)'.format(i, best_candidate['plate'].upper(),
+                                                              best_candidate['confidence']))
+        except cv2.error as e:
+            print("OpenCV Exception caught: ", e)
+            error_state = True
+        except Exception as e:
+            print("Exception caught: ", e)
+            error_state = True
+        finally:
+            return not error_state;
 
     def stop(self):
         self._running = False
-        
+
+
 def main():
     alpr = Alpr('eu', '../resources/openalpr.conf', '../resources/runtime_data')
     if not alpr.is_loaded():
