@@ -1,7 +1,7 @@
 import zmq
 
 
-class Client():
+class Client:
 
     def __init__(self, address=None, port=None):
         self._context = zmq.Context()
@@ -9,11 +9,17 @@ class Client():
         if address is not None and port is not None:
             self.connect(address, port)
 
+    @classmethod
+    def __create_full_address(cls, address, port):
+        return address + ':' + str(port)
+
     def connect(self, address, port):
-        self._socket.connect(address, port)
+        complete_address = Client.__create_full_address(address, port)
+        self._socket.connect(complete_address)
 
     def disconnect(self, address, port):
-        self._socket.disconnect(address)
+        complete_address = Client.__create_full_address(address, port)
+        self._socket.disconnect(complete_address)
 
     def send_message(self, message):
         reply = None
@@ -21,6 +27,6 @@ class Client():
             self._socket.send_json(message)
             reply = self._socket.recv_json()
         except zmq.ZMQError as e:
-            print("Exception caught: ", e)
+            print("Client Exception caught: ", e)
         finally:
             return reply
