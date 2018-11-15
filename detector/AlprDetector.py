@@ -22,33 +22,33 @@ def video_source_properties(cap):
     print('Video source properties ', str(data))
 
 
-class Detector:
+class AlprDetector:
 
-    def __init__(self, name, config, video_source, frame_skip=FRAME_SKIP, event_callback=None):
-        self._name = name
-        self.alpr_instance = Alpr(config.region, config.config_file, config.runtime_data_file)
-        if not self.alpr_instance.is_loaded():
+    def __init__(self, name, config, video_source, event_callback=None):
+        self.__name = name
+        self.__alpr_instance = Alpr(config.region, config.config_file, config.runtime_data_file)
+        if not self.__alpr_instance.is_loaded():
             print('Alpr instance could not be created')
-        self.frame_skip = frame_skip
+        self.__frame_skip = config.frame_skip
         self.event_callback = event_callback
-        self._video_source = video_source
-        self._cap = cv2.VideoCapture(video_source)
-        self._running = False
+        self.__video_source = video_source
+        self.__cap = cv2.VideoCapture(video_source)
+        self.__running = False
 
     def is_working(self):
-        return self._cap.isOpened() and self._running
+        return self.__cap.isOpened() and self.__running
 
     def video_source_properties(self):
         data = dict()
-        data['source'] = self._video_source
-        data['fps'] = self._cap.get(cv2.CAP_PROP_FPS)
-        data['width'] = self._cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        data['height'] = self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        data['codec'] = self._cap.get(cv2.CAP_PROP_FOURCC)
+        data['source'] = self.__video_source
+        data['fps'] = self.__cap.get(cv2.CAP_PROP_FPS)
+        data['width'] = self.__cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        data['height'] = self.__cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        data['codec'] = self.__cap.get(cv2.CAP_PROP_FOURCC)
         return
 
     @staticmethod
-    def _extract_results(alpr_result):
+    def __extract_results(alpr_result):
         if alpr_result is None:
             return None
         if not alpr_result['results']:
@@ -60,52 +60,60 @@ class Detector:
                     result.append([candidate['plate'], candidate['confidence']])
             return result
 
+    @staticmethod
+    def __extract_best_candidate(alpr_result):
+        return alpr_result['results'][0]['plate'] if alpr_result['results'] else None
+
+    def __handle_results(self, extracted_results):
+        if self.event_callback is not None:
+            callback_data = dict()
+            # object is list of dict containing 'plate' and 'confidence'
+            callback_data['candidates'] = extracted_results
+            callback_data['detector'] = self.__name
+            self.event_callback(callback_data)
+
     def run(self):
-        if self._running:
+        if self.__running:
             print('Detector is already running')
             return False
         else:
-            self._running = True
+            self.__running = True
 
         if not self.is_working():
             print('Video capture not working.');
             return False
 
         frame_number = 0
+        last_recognized_plate = None
         error_state = False
         try:
-            print(self._name, ' starting detector loop for: ', self._video_source)
-            while self._running:
-                last_read_status, frame = self._cap.read()
+            print(self.__name, ' starting detector loop for: ', self.__video_source)
+            while self.__running:
+                last_read_status, frame = self.__cap.read()
                 if not last_read_status:
                     print('Video capture.read() failed. Stopping the work')
-                    self._running = False
+                    self.__running = False
                     error_state = True
                     break
-
                 frame_number += 1
-                if frame_number % self.frame_skip == 0:
+                if frame_number % self.__frame_skip == 0:
                     frame_number = 0
                     continue
                 if cv2.waitKey(1) == 27:
                     break
-                cv2.imshow(self._name, frame)
+                cv2.imshow(self.__name, frame)
 
                 # todo: use recognize_ndarray when updated to at least 2.3.1
                 # alpr.recognize_ndarray(frame)
                 ret, enc = cv2.imencode("*.bmp", frame)
-                results = self.alpr_instance.recognize_array(bytes(bytearray(enc)))
-                if self.event_callback is not None:
+                results = self.__alpr_instance.recognize_array(bytes(bytearray(enc)))
+                best_candidate = self.__extract_best_candidate(results)
+                if best_candidate is not None and best_candidate != last_recognized_plate:
+                    last_recognized_plate = best_candidate
                     # send first recognized plate and all candidates
-                    extracted_results = self._extract_results(results)
-                    if extracted_results is None:
-                        continue
-
-                    callback_data = dict()
-                    # object is list of dict containing 'plate' and 'confidence'
-                    callback_data['candidates'] = extracted_results
-                    callback_data['detector'] = self._name
-                    self.event_callback(callback_data)
+                    extracted_results = self.__extract_results(results)
+                    if extracted_results:
+                        self.__handle_results(results)
 
         except cv2.error as e:
             print("OpenCV Exception caught: ", e)
@@ -114,13 +122,13 @@ class Detector:
             print("Exception caught: ", e)
             error_state = True
         finally:
-            self.alpr_instance.unload()
-            self._running = False
-            print(self._name, " is stopping")
+            self.__alpr_instance.unload()
+            self.__running = False
+            print(self.__name, " is stopping")
             return not error_state
 
     def stop(self):
-        self._running = False
+        self.__running = False
 
 
 def create_configuration():
@@ -129,7 +137,7 @@ def create_configuration():
 
 
 def run_detector(alpr_configuration, instance_name, video_source):
-    detector = Detector(instance_name, alpr_configuration, video_source)
+    detector = AlprDetector(instance_name, alpr_configuration, video_source)
     print('is working : ', detector.is_working())
 
     print(detector.video_source_properties())
@@ -141,6 +149,7 @@ def main():
     alpr_configuration = create_configuration()
 
     run_detector(alpr_configuration, "detector_2", VIDEO_SOURCE_FILE)
+
 
 if __name__ == "__main__":
     main()
