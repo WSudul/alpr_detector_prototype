@@ -1,9 +1,7 @@
-import datetime
 from collections import namedtuple
 
 import cv2
 from openalpr import Alpr
-import sys
 
 VIDEO_SOURCE = 0  # default webcam address
 VIDEO_SOURCE_FILE = '../resources/videos/hispeed.mp4'
@@ -113,7 +111,7 @@ class AlprDetector:
                     # send first recognized plate and all candidates
                     extracted_results = self.__extract_results(results)
                     if extracted_results:
-                        self.__handle_results(results)
+                        self.__handle_results(extracted_results)
 
         except cv2.error as e:
             print("OpenCV Exception caught: ", e)
