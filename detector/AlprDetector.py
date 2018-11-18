@@ -19,7 +19,7 @@ def video_source_properties(cap):
     data['width'] = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     data['height'] = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     data['codec'] = cap.get(cv2.CAP_PROP_FOURCC)
-    print('Video source properties ', str(data))
+    return 'Video source properties ' + str(data)
 
 
 class AlprDetector:
@@ -74,13 +74,13 @@ class AlprDetector:
 
     def run(self):
         if self.__running:
-            print('Detector is already running')
+            print(self.__name, ' Detector is already running')
             return False
         else:
             self.__running = True
 
         if not self.is_working():
-            print('Video capture not working.');
+            print(self.__name, ' Video capture not working.');
             return False
 
         frame_number = 0
