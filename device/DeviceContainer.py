@@ -1,4 +1,4 @@
-from device.BaseDevice import DeviceLocation, LocalDevice, Device
+from device.Device import DeviceLocation, LocalDevice, Device
 
 
 class DeviceContainer:
