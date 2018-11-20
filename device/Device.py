@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from multiprocessing import Process
 
@@ -23,10 +23,16 @@ class BaseDevice(ABC):
     def __init__(self, name, address, video_source) -> None:
         super().__init__()
         self.id: str = name
-        # self.type: DeviceLocation = device_type
         self.address: str = address
         self.video_source: str = video_source
         self.status: DeviceStatus = DeviceStatus.OFF
+
+    @abstractmethod
+    def get_device_type(self) -> DeviceLocation:
+        pass
+
+    def get_device_status(self) -> DeviceStatus:
+        return self.status
 
     def start(self) -> bool:
         if self.status == DeviceStatus.OFF:
@@ -44,14 +50,18 @@ class BaseDevice(ABC):
 
 
 class LocalDevice(BaseDevice):
+
     def __init__(self, name, address, video_source) -> None:
         super().__init__(name, address, video_source)
         self.__process: Process = None
 
+    def get_device_type(self) -> DeviceLocation:
+        return DeviceLocation.LOCAL
+
     def __start_detector(self):
         alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
-        detector_arguments = DetectorArgs('detector1', alpr_configuration, super().video_source)
-        new_process_args = DetectorProcessArguments(super().name, detector_arguments,
+        detector_arguments = DetectorArgs('detector1', alpr_configuration, self.video_source)
+        new_process_args = DetectorProcessArguments(self.id, detector_arguments,
                                                     CommunicationConfiguration(
                                                         AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
                                                         AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT)))
@@ -61,13 +71,13 @@ class LocalDevice(BaseDevice):
         self.__process.start()
 
     def start(self) -> bool:
-        if DeviceStatus.OFF == super().status:
+        if DeviceStatus.OFF == self.get_device_status():
             self.__start_detector()
 
         return super().start()
 
     def stop(self):
-        if DeviceStatus.ON == super().status:
+        if DeviceStatus.ON == self.get_device_status():
             if self.__process.is_alive():
                 self.__process.terminate()
                 self.__process.join()
@@ -76,4 +86,6 @@ class LocalDevice(BaseDevice):
 
 
 class Device(BaseDevice):
+    def get_device_type(self) -> DeviceLocation:
+        return DeviceLocation.NONLOCAL
     pass
