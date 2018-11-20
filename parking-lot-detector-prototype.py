@@ -1,5 +1,6 @@
 from flask import Flask, request
 
+from device.Device import DeviceLocation, DeviceStatus
 from device.DeviceContainer import DeviceContainer
 from ipc_communication.Server import AsyncServer
 from ipc_communication.default_configuration import SERVER_PREFIX, DEFAULT_DETECTOR_SERVER_PORT
@@ -33,7 +34,7 @@ def status():
     return 'Current avaiable sources: \n' + str(device_container.get_list_of_devices())
 
 
-def start_detector_on_device(video_source, name, address):
+def start_detector_on_device(name, location, address, video_source):
     # todo implement this to connect to daemon on device and start new process there
     return None
 
@@ -52,6 +53,7 @@ def manage_source():
         print('POST Request received')
         name = request.form.get('name')
         new_status = request.form.get('status')
+        new_status_enum = DeviceStatus[new_status]
 
         if name not in device_container:
             print('Starting new detector process')
@@ -59,21 +61,17 @@ def manage_source():
             location = request.form.get('location')
             address = request.form.get('address')
 
-            device_container.add_device(name, location, address)
-            if 'ON' == new_status:
+            location_enum = DeviceLocation[location]
+            device_container.add_device(name, location_enum, address, video_source)
+            if DeviceStatus.ON == new_status_enum:
                 device_container.start_device(name)
 
-            if 'LOCAL' == location:
-                start_detector(video_source, name)
-            elif 'NONLOCAL' == location:
-                start_detector_on_device(video_source, name, address)
-
-            return 'added device'
+            return 'added device ' + name
         else:
             # todo handle update
-            if 'ON' == new_status:
+            if DeviceStatus.ON == new_status_enum:
                 return device_container.start_device(name)
-            elif 'OFF' == new_status:
+            else:
                 return device_container.stop_device(name)
 
 
