@@ -6,6 +6,9 @@ class DeviceContainer:
         super().__init__()
         self.__devices = dict()
 
+    def __contains__(self, item):
+        return item in self.__devices
+
     def add_device(self, name: str, device_type: DeviceLocation, address: str, video_source: str) -> bool:
         if name in self.__devices:
             return False
