@@ -1,4 +1,4 @@
-from device.Device import Device, DeviceLocation
+from device.BaseDevice import DeviceLocation, LocalDevice, Device
 
 
 class DeviceContainer:
@@ -6,11 +6,13 @@ class DeviceContainer:
         super().__init__()
         self.__devices = dict()
 
-    def add_device(self, name: str, device_type: DeviceLocation, address: str) -> bool:
+    def add_device(self, name: str, device_type: DeviceLocation, address: str, video_source: str) -> bool:
         if name in self.__devices:
             return False
 
-        new_device = Device(name, device_type, address)
+        new_device = LocalDevice(name, address, video_source) \
+            if DeviceLocation.LOCAL == device_type else Device(name, address, video_source)
+
         self.__devices[name] = new_device
         return True
 
