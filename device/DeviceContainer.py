@@ -1,4 +1,4 @@
-from device.Device import DeviceLocation, LocalDevice, Device
+from device.Device import DeviceLocation, LocalDevice, Device, DeviceStatus
 
 
 class DeviceContainer:
@@ -31,7 +31,7 @@ class DeviceContainer:
 
     def get_device_location(self, name: str):
         device = self.__devices.get(name, None)
-        return None if device is None else device.location
+        return None if device is None else device.get_device_type()
 
     def get_device_address(self, name: str):
         device = self.__devices.get(name, None)
@@ -44,3 +44,16 @@ class DeviceContainer:
     def stop_device(self, name: str) -> bool:
         device = self.__devices.get(name, None)
         return False if device is None else device.stop()
+
+    def handle_device_update(self, name, new_status: DeviceStatus) -> bool:
+        device = self.__devices.get(name, None)
+        if device is None:
+            return False
+
+        if DeviceStatus.ON == new_status:
+            return device.start()
+        elif DeviceStatus.OFF == new_status:
+            return device.stop()
+        else:
+            print('Incorrect device status passed to update')
+            return False

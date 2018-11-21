@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask.json import jsonify
 
 from device.Device import DeviceLocation, DeviceStatus
 from device.DeviceContainer import DeviceContainer
@@ -44,10 +45,13 @@ def manage_source():
     if request.method == 'GET':
         name = request.args.get('name')
         if name in device_container:
-            source_status = device_container[name]
+            device_info = dict()
+            device_info['status'] = device_container.get_device_status(name).name
+            device_info['location'] = device_container.get_device_location(name).name
+            device_info['address'] = device_container.get_device_address(name)
+            return jsonify(device_info)
         else:
-            source_status = 'unknown'
-        return 'Source status: ' + source_status
+            return 'unknown'
 
     if request.method == 'POST':
         print('POST Request received')
@@ -68,11 +72,8 @@ def manage_source():
 
             return 'added device ' + name
         else:
-            # todo handle update
-            if DeviceStatus.ON == new_status_enum:
-                return device_container.start_device(name)
-            else:
-                return device_container.stop_device(name)
+            update_successful = device_container.handle_device_update(name, new_status_enum)
+            return 'device ' + name + (' not' if update_successful else ' ') + 'updated'
 
 
 if __name__ == '__main__':
