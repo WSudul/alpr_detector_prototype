@@ -8,7 +8,7 @@ FullAddressAndHandler = namedtuple('FullAddressAndHandler', 'address, callback')
 
 
 class Server:
-    def __init__(self, address=None, port=None, message_handler=None):
+    def __init__(self, message_handler, address=None, port=None, ):
         self._context = zmq.Context()
         self.__sockets = dict()  # dict of {socket: {Address and Handler}}
 
@@ -62,12 +62,12 @@ class Server:
             for event in events:
                 socket_data: FullAddressAndHandler = self.__sockets[event]
 
-                message = self.__sockets.recv_json()
+                message = event.recv_json()
                 if message is None:
                     print('Received message is None')
 
                 reply = socket_data.callback(message)
-                self.__sockets.send_json(reply)
+                event.send_json(reply)
 
         except zmq.ZMQError as e:
             print("Server Exception caught: ", e)
@@ -75,7 +75,7 @@ class Server:
 
 class AsyncServer(Server):
     def __init__(self, address, port, message_handler):
-        Server.__init__(self, address, port, message_handler)
+        Server.__init__(self, message_handler, address, port)
         self.__run = False
         self.__server_thread: Thread = None
 
