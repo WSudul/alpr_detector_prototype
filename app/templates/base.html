@@ -1,0 +1,21 @@
+<html>
+<head>
+    {% if title %}
+    <title>{{ title }} - WebServer</title>
+    {% else %}
+    <title>Welcome to WebServer</title>
+    {% endif %}
+</head>
+<body>
+<div>
+    Roadmap:
+    <a href="{{ url_for('index') }}">Home</a>
+    {% if current_user.is_anonymous %}
+    <a href="{{ url_for('login') }}">Login</a>
+    {% else %}
+    <a href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
+</div>
+{% block content %}{% endblock %}
+</body>
+</html>

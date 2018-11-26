@@ -1,0 +1,1 @@
+FLASK_APP=parking-lot-detector-prototype.py
