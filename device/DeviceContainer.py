@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from device.Device import DeviceLocation, LocalDevice, Device, DeviceStatus
 
 
@@ -57,3 +59,15 @@ class DeviceContainer:
         else:
             print('Incorrect device status passed to update')
             return False
+
+    DeviceSnapshot = namedtuple('DeviceSnapshot', 'name, status, address, location')
+
+    def get_devices_snapshot(self):
+        names = self.get_list_of_devices()
+        snapshot = list()
+        for name in names:
+            status = self.get_device_status(name)
+            address = self.get_device_address(name)
+            location = self.get_device_location(name)
+            snapshot.append(DeviceContainer.DeviceSnapshot(name, status, address, location))
+        return snapshot

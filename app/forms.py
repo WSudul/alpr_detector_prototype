@@ -1,7 +1,9 @@
 from flask_babel import lazy_gettext as _l
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+
+from device.Device import DeviceStatus, DeviceLocation
 
 
 class LoginForm(FlaskForm):
@@ -22,3 +24,36 @@ class ResetPasswordForm(FlaskForm):
         _l('Repeat Password'), validators=[DataRequired(),
                                            EqualTo('password')])
     submit = SubmitField(_l('Request Password Reset'))
+
+
+def device_status_check(form, field):
+    if DeviceStatus.UNKNOWN.name.upper() == field.data.upper():
+        raise ValidationError('Illegal state provided. Acceptable states: ' +
+                              str(list(map(lambda c: c.name, DeviceLocation))))
+
+    for status in DeviceStatus:
+        if status.name.upper() == field.data.upper():
+            return
+
+    raise ValidationError('Illegal state provided. Acceptable states: ' +
+                          str(list(map(lambda c: c.name, DeviceLocation))))
+
+
+def device_location_check(form, field):
+    for status in DeviceLocation:
+        if status.name.upper() == field.data.upper():
+            return
+
+    raise ValidationError('Illegal state provided. Acceptable states: ' +
+                          str(list(map(lambda c: c.name, DeviceLocation))))
+
+
+class DeviceForm(FlaskForm):
+    name = StringField(_l('Name'), validators=[DataRequired()])
+    status = StringField(_l('Status'), validators=[DataRequired(), device_status_check])
+    video_source = StringField(_l('Video source'), validators=[DataRequired()])
+    address = StringField(_l('Address'), validators=[DataRequired()])
+    location = StringField(_l('Location'), validators=[DataRequired(), device_location_check])
+    capture = BooleanField(_l('Capture images'))
+
+    submit = SubmitField(_l('Submit device update'))
