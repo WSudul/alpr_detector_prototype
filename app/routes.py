@@ -59,8 +59,6 @@ def handle_device_update(name, new_status_enum, video_source, location_enum, add
         return 'device ' + name + (' not' if update_successful else ' ') + 'updated'
 
 
-
-
 @flask_app.route('/source', methods=['GET', 'POST'])
 def manage_source():
     name = request.args.get('name')
@@ -83,9 +81,8 @@ def manage_source():
         location = form.location.data
         location_enum = DeviceLocation[location]
         address = form.address.data
-        success = handle_device_update(name, new_status_enum, video_source, location_enum, address)
-        return redirect('index')
-    else:
+        response = handle_device_update(name, new_status_enum, video_source, location_enum, address)
+        flash(response)
 
-        return render_template('device.html', title='WebServer', form=form,
-                               devices=device_container.get_devices_snapshot())
+    return render_template('device.html', title='WebServer', form=form,
+                           devices=device_container.get_devices_snapshot())

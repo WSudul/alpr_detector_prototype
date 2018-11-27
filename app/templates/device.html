@@ -4,8 +4,8 @@
 
 {% block app_content %}
 <body>
-Manage new device
-
+<h1>Manage devices</h1>
+<h2>Existing devices</h2>
 <table class="table">
     <thead>
     <tr>
@@ -26,8 +26,8 @@ Manage new device
     {% endfor %}
     </tbody>
 </table>
-
 </body>
+<h2>Update/Create new device</h2>
 <form action="" method="post" novalidate>
     {{ form.hidden_tag() }}
     <p>
