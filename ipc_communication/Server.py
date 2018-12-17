@@ -8,8 +8,8 @@ FullAddressAndHandler = namedtuple('FullAddressAndHandler', 'address, callback')
 
 
 class Server:
-    def __init__(self, message_handler, address=None, port=None, ):
-        self._context = zmq.Context()
+    def __init__(self, message_handler, address=None, port=None, context=None):
+        self._context = context if context else zmq.Context()
         self.__sockets = dict()  # dict of {socket: {Address and Handler}}
 
         self.__default_message_handler = message_handler
@@ -57,7 +57,7 @@ class Server:
 
     def receive_message(self):
         try:
-            events = dict(self.__poller.poll())
+            events = dict(self.__poller.poll(timeout=1000))
 
             for event in events:
                 socket_data: FullAddressAndHandler = self.__sockets[event]

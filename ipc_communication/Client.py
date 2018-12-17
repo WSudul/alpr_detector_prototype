@@ -3,8 +3,8 @@ import zmq
 
 class Client:
 
-    def __init__(self, address=None, port=None):
-        self._context = zmq.Context()
+    def __init__(self, address=None, port=None, context=None):
+        self._context = context if context else zmq.Context()
         self._socket = self._context.socket(zmq.REQ)
         if address is not None and port is not None:
             self.connect(address, port)
