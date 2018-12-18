@@ -3,7 +3,7 @@ from enum import Enum
 from multiprocessing import Process
 
 from detector.AlprDetector import AlprConfiguration, FRAME_SKIP
-from detector.DetectorProcessWrapper import DetectorProcessArguments, DetectorArgs, AddressAndPort, \
+from detector.DetectorProcessWrapper import DetectorProcessArguments, AlprDetectorArgs, AddressAndPort, \
     CommunicationConfiguration, start_detector_process
 from ipc_communication.default_configuration import CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT
 
@@ -60,11 +60,12 @@ class LocalDevice(BaseDevice):
 
     def __start_detector(self):
         alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
-        detector_arguments = DetectorArgs('detector1', alpr_configuration, self.video_source)
+        detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, self.video_source)
         new_process_args = DetectorProcessArguments(self.id, detector_arguments,
                                                     CommunicationConfiguration(
                                                         AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
-                                                        AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT)))
+                                                        AddressAndPort(CLIENT_PREFIX,
+                                                                       DEFAULT_DETECTOR_SERVER_PORT + 1)))
 
         print('Starting new process with config:\n', new_process_args)
         self.__process = Process(target=start_detector_process, args=(new_process_args,))
