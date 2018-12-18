@@ -9,8 +9,8 @@ class Client:
         if address is not None and port is not None:
             self.connect(address, port)
 
-    @classmethod
-    def __create_full_address(cls, address, port):
+    @staticmethod
+    def __create_full_address(address, port):
         return address + ':' + str(port)
 
     def connect(self, address, port):

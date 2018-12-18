@@ -16,10 +16,11 @@ class Server:
         self.__poller = zmq.Poller()
 
         if address is not None and port is not None:
-            self.bind(address, port)
+            self.bind(address, port, message_handler)
 
-    @classmethod
-    def __create_full_address(cls, address, port):
+    @staticmethod
+    def __create_full_address(address, port):
+        print(address, ' : ', port)
         return address + ':' + str(port)
 
     def bind(self, address, port, handler=None):
@@ -32,7 +33,7 @@ class Server:
             return
 
         socket = self._context.socket(zmq.REP)
-        socket.bind(Server.__create_full_address(address, port))
+        socket.bind(full_address)
 
         if handler is None:
             handler = self.__default_message_handler
@@ -51,7 +52,7 @@ class Server:
             print('No socket was bound to ', full_address)
             return
 
-        popped_socket.unbind(Server.__create_full_address(address, port))
+        popped_socket.unbind(full_address)
         self.__poller.unregister(popped_socket)
         self.__sockets.pop(full_address)
 
@@ -74,8 +75,12 @@ class Server:
 
 
 class AsyncServer(Server):
-    def __init__(self, address, port, message_handler):
-        Server.__init__(self, message_handler, address, port)
+    def __init__(self, address, port, message_handler, context=None):
+        Server.__init__(self,
+                        address=address,
+                        port=port,
+                        context=context,
+                        message_handler=message_handler)
         self.__run = False
         self.__server_thread: Thread = None
 
