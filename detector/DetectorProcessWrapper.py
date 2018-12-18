@@ -16,7 +16,6 @@ CommunicationConfiguration = namedtuple('CommunicationConfiguration',
                                         'server, command_listener')
 
 
-
 class DetectorManager:
     def __init__(self, name: str, detector_args: AlprDetectorArgs,
                  communication_configuration: CommunicationConfiguration):
@@ -53,7 +52,11 @@ class DetectorManager:
                                                args.video_source, self.__client.send_message)
                 self.__state = DetectorState.ON
             elif DetectorState.ON == self.__state:
-                self.__detector.run()
+                is_successful = self.__detector.run()
+                if not is_successful:
+                    print('detector stopped due to invalid state - quitting run method')
+                    # todo perform any needed cleanup
+                    self.__state = DetectorState.OFF
 
     def __handle_json_command(self, json_data):
         print('handle_command ', str(json_data))
@@ -130,8 +133,8 @@ def message_handler_callback(message):
     response = True
     return response
 
-def main():
 
+def main():
     server_thread = Thread(target=start_server, args=[message_handler_callback])
     server_thread.start()
 
