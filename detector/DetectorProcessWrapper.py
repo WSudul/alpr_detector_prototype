@@ -1,12 +1,15 @@
 from collections import namedtuple
 from threading import Thread
 
-from detector.AlprDetector import AlprDetector, create_configuration, VIDEO_SOURCE, VIDEO_SOURCE_FILE
+import zmq
+
+from detector.AlprDetector import create_configuration, VIDEO_SOURCE, VIDEO_SOURCE_FILE, AlprDetector, AlprDetectorArgs
+from detector.ConfigRequests import DetectorRequest, ConfigurationRequest, DetectorState
 from ipc_communication.Client import Client
-from ipc_communication.Server import Server
+from ipc_communication.Server import AsyncServer, Server
 from ipc_communication.default_configuration import CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT, SERVER_PREFIX
 
-DetectorArgs = namedtuple('DetectorArgs', 'instance_name, alpr_configuration, video_source')
+DetectorProcessArguments = namedtuple('DetectorProcessArguments', 'name, detector_args, communication_config')
 
 AddressAndPort = namedtuple('AddressAndPort', 'address, port')
 CommunicationConfiguration = namedtuple('CommunicationConfiguration',

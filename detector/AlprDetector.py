@@ -1,3 +1,4 @@
+import datetime
 from collections import namedtuple
 
 import cv2
@@ -9,6 +10,7 @@ WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 12
 
 AlprConfiguration = namedtuple('AlprConfiguration', 'region, config_file, runtime_data_file, frame_skip')
+AlprDetectorArgs = namedtuple('AlprDetectorArgs', 'instance_name, alpr_configuration, video_source')
 
 
 def video_source_properties(cap):
