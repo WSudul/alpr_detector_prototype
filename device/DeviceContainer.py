@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from device.Device import DeviceLocation, LocalDevice, Device, DeviceStatus
+from device.Device import DeviceLocation, LocalDevice, DeviceStatus
 
 
 class DeviceContainer:
@@ -11,12 +11,12 @@ class DeviceContainer:
     def __contains__(self, item):
         return item in self.__devices
 
-    def add_device(self, name: str, device_type: DeviceLocation, address: str, video_source: str) -> bool:
+    def add_device(self, name: str, device_type: DeviceLocation, address: str, listener_port,
+                   video_source: str) -> bool:
         if name in self.__devices:
             return False
 
-        new_device = LocalDevice(name, address, video_source) \
-            if DeviceLocation.LOCAL == device_type else Device(name, address, video_source)
+        new_device = LocalDevice(name, address, listener_port, video_source)
 
         self.__devices[name] = new_device
         return True
@@ -47,12 +47,26 @@ class DeviceContainer:
         device = self.__devices.get(name, None)
         return False if device is None else device.stop()
 
-    def handle_device_update(self, name, new_status: DeviceStatus) -> bool:
+    def handle_device_update(self, name, new_status: DeviceStatus, address=None,
+                             listener_port=None, video_source: str = None) -> bool:
         device = self.__devices.get(name, None)
         if device is None:
             return False
 
         if DeviceStatus.ON == new_status:
+
+            if video_source:
+                args = dict()
+                if video_source:
+                    args['video_source'] = video_source
+                if address:
+                    args['address'] = address
+                if listener_port:
+                    args['listener_port'] = listener_port
+
+                result = device.update(args)
+                return result
+
             return device.start()
         elif DeviceStatus.OFF == new_status:
             return device.stop()
