@@ -1,7 +1,7 @@
 from flask_babel import lazy_gettext as _l
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, IntegerField
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired
 
 from device.Device import DeviceStatus, DeviceLocation
 
@@ -53,7 +53,20 @@ class DeviceForm(FlaskForm):
     status = StringField(_l('Status'), validators=[DataRequired(), device_status_check])
     video_source = StringField(_l('Video source'), validators=[DataRequired()])
     address = StringField(_l('Address'), validators=[DataRequired()])
+    listener_port = IntegerField(_l('Listener Port'), validators=[DataRequired()])
     location = StringField(_l('Location'), validators=[DataRequired(), device_location_check])
     capture = BooleanField(_l('Capture images'))
 
+    submit = SubmitField(_l('Submit device creation'))
+
+
+class UpdateDeviceForm(FlaskForm):
+    name = StringField(_l('Device'), validators=[InputRequired()])
+    status = StringField(_l('Status'), validators=[device_status_check])
+    video_source = StringField(_l('Video source'))
+    address = StringField(_l('Address'))
+    listener_port = IntegerField(_l('Listener Port'))
+    capture = BooleanField(_l('Capture images'))
+
     submit = SubmitField(_l('Submit device update'))
+

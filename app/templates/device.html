@@ -27,46 +27,97 @@
     </tbody>
 </table>
 </body>
-<h2>Update/Create new device</h2>
-<form action="" method="post" novalidate>
-    {{ form.hidden_tag() }}
+<h2>Create new device</h2>
+<form action="{{ url_for('add_device')  }}" method="post" novalidate>
+    {{ create_form.hidden_tag() }}
     <p>
-        {{ form.name.label }}<br>
-        {{ form.name(size=32) }}<br>
-        {% for error in form.name.errors %}
+        {{ create_form.name.label }}<br>
+        {{ create_form.name(size=32) }}<br>
+        {% for error in create_form.name.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.status.label }}<br>
-        {{ form.status(size=32) }}<br>
-        {% for error in form.status.errors %}
+        {{ create_form.status.label }}<br>
+        {{ create_form.status(size=32) }}<br>
+        {% for error in create_form.status.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.video_source.label }}<br>
-        {{ form.video_source(size=32) }}<br>
-        {% for error in form.video_source.errors %}
+        {{ create_form.video_source.label }}<br>
+        {{ create_form.video_source(size=32) }}<br>
+        {% for error in create_form.video_source.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.address.label }}<br>
-        {{ form.address(size=32) }}<br>
-        {% for error in form.address.errors %}
+        {{ create_form.address.label }}<br>
+        {{ create_form.address(size=32) }}<br>
+        {% for error in create_form.address.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.location.label }}<br>
-        {{ form.location(size=32) }}<br>
-        {% for error in form.location.errors %}
+        {{ create_form.listener_port.label }}<br>
+        {{ create_form.listener_port(size=32) }}<br>
+        {% for error in create_form.listener_port.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ create_form.location.label }}<br>
+        {{ create_form.location(size=32) }}<br>
+        {% for error in create_form.location.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
 
-    <p>{{ form.capture() }} {{ form.capture.label }}</p>
-    <p>{{ form.submit() }}</p>
+    <p>{{ create_form.capture() }} {{ create_form.capture.label }}</p>
+    <p>{{ create_form.submit() }}</p>
 </form>
+
+<h2>Update device</h2>
+<form action="{{ url_for('update_device')  }}" method="post" novalidate>
+    {{ update_form.hidden_tag() }}
+    <p>
+        {{ update_form.name.label }}<br>
+        {{ update_form.name(size=32) }}<br>
+        {% for error in update_form.name.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ update_form.status.label }}<br>
+        {{ update_form.status(size=32) }}<br>
+        {% for error in update_form.status.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ update_form.video_source.label }}<br>
+        {{ update_form.video_source(size=32) }}<br>
+        {% for error in update_form.video_source.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ update_form.address.label }}<br>
+        {{ update_form.address(size=32) }}<br>
+        {% for error in update_form.address.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ update_form.listener_port.label }}<br>
+        {{ update_form.listener_port(size=32) }}<br>
+        {% for error in update_form.listener_port.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+    <p>{{ update_form.capture() }} {{ update_form.capture.label }}</p>
+    <p>{{ update_form.submit() }}</p>
+</form>
+
 {% endblock %}
