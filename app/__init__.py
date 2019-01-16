@@ -17,7 +17,6 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 bootstrap = Bootstrap()
-
 babel = Babel()
 
 device_container = DeviceContainer()
@@ -32,7 +31,7 @@ ipc_server = AsyncServer(SERVER_PREFIX, DEFAULT_DETECTOR_SERVER_PORT, message_ha
 
 def create_app(config_class=Config):
     print('using create_app to create flask app object')
-    # ipc_server.run() # TODO uncomment this
+    ipc_server.run()
 
     app = Flask(__name__)
     app.config.from_object(config_class)
