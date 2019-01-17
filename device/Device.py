@@ -113,3 +113,59 @@ class LocalDevice(BaseDevice):
             return response
         else:
             return False
+
+
+class RemoteDevice(BaseDevice):
+
+    def __init__(self, name, address, listener_port, video_source) -> None:
+        super().__init__(name, address, listener_port, video_source)
+        self.__command_sender: Client = Client()
+
+    def get_device_type(self) -> DeviceLocation:
+        return DeviceLocation.LOCAL
+
+    def __start_detector(self):
+        alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
+        detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, self.video_source)
+        new_process_args = DetectorProcessArguments(self.id, detector_arguments,
+                                                    CommunicationConfiguration(
+                                                        AddressAndPort(self.address, DEFAULT_DETECTOR_SERVER_PORT),
+                                                        AddressAndPort(self.address,
+                                                                       self.listener_port)))
+
+        print('Starting new process with config:\n', new_process_args)
+        command_listener_config = new_process_args.communication_config.command_listener
+        self.__command_sender.connect(command_listener_config.address, command_listener_config.port)
+        self.__command_sender.send_message(new_process_args)
+
+    def start(self) -> bool:
+        if DeviceStatus.OFF == self.get_device_status():
+            self.__start_detector()
+
+        return super().start()
+
+    def stop(self):
+        if DeviceStatus.ON == self.get_device_status():
+            stop_request = StateChangeRequest(DetectorState.OFF)
+            response = self.__command_sender.send_message(stop_request)
+            if response is not None and response is True:
+                return super().stop()
+            else:
+                return False;
+
+    def update(self, **update_data):
+        if DeviceStatus.ON == self.get_device_status():
+            request = ConfigurationRequest(**update_data)
+            response = self.__command_sender.send_message(request)
+            if response:
+                if 'video_source' in update_data:
+                    print('updating video_source: ', update_data.get('video_source'))
+                    self.video_source = update_data.get('video_source')
+
+                if 'address' in update_data:
+                    print('updating address: ', update_data.get('address'))
+                    self.address = update_data.get('address')
+
+            return response
+        else:
+            return False

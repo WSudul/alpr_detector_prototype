@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from device.Device import DeviceLocation, LocalDevice, DeviceStatus
+from device.Device import DeviceLocation, LocalDevice, DeviceStatus, BaseDevice, RemoteDevice
 
 
 class DeviceContainer:
@@ -16,7 +16,8 @@ class DeviceContainer:
         if name in self.__devices:
             return False
 
-        new_device = LocalDevice(name, address, listener_port, video_source)
+        new_device: BaseDevice = LocalDevice(name, address, listener_port, video_source) \
+            if device_type is DeviceLocation.LOCAL else RemoteDevice(name, address, listener_port, video_source)
 
         self.__devices[name] = new_device
         return True
