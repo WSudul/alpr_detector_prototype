@@ -45,7 +45,7 @@ def status():
     return 'Current avaiable sources: \n' + str(device_container.get_list_of_devices())
 
 
-def handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port):
+def handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port, capture_images):
     if name not in device_container:
         print('Starting new detector')
 
@@ -53,14 +53,14 @@ def handle_device_update(name, new_status_enum, video_source, location_enum, add
             print('Interpreting video source as device id')
             video_source = int(video_source)
 
-        device_container.add_device(name, location_enum, address, listener_port, video_source)
+        device_container.add_device(name, location_enum, address, listener_port, video_source, capture_images)
         if DeviceStatus.ON == new_status_enum:
             device_container.start_device(name)
 
         return 'added device ' + name
     else:
         update_successful = device_container.handle_device_update(name, new_status_enum, address, listener_port,
-                                                                  video_source)
+                                                                  video_source, capture_images)
         return 'device ' + name + (' not ' if update_successful else ' ') + 'updated'
 
 
@@ -101,7 +101,9 @@ def add_device():
         location_enum = DeviceLocation[location]
         address = form_create.address.data
         listener_port = form_create.listener_port.data
-        response = handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port)
+        capture_images = form_create.capture.data
+        response = handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port,
+                                        capture_images)
         flash(response)
 
     return render_template('device.html', title='WebServer', create_form=form_create, update_form=form_update,
@@ -122,7 +124,9 @@ def update_device():
         video_source = form_create.video_source.data
         address = form_update.address.data
         listener_port = form_update.listener_port.data
-        response = handle_device_update(name, new_status_enum, video_source, None, address, listener_port)
+        capture_images = form_update.capture.data
+        response = handle_device_update(name, new_status_enum, video_source, None, address, listener_port,
+                                        capture_images)
         flash(response)
 
     return render_template('device.html', title='WebServer', create_form=form_create, update_form=form_update,

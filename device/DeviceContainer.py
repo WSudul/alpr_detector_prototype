@@ -14,7 +14,7 @@ class DeviceContainer:
         return item in self.__devices
 
     def add_device(self, name: str, device_type: DeviceLocation, address: str, listener_port,
-                   video_source: str) -> bool:
+                   video_source: str, capture_images: bool) -> bool:
         if name in self.__devices:
             return False
 
@@ -26,7 +26,8 @@ class DeviceContainer:
                                                 AddressAndPort(address,
                                                                listener_port))
 
-            new_device: BaseDevice = LocalDevice(name=name, video_source=video_source, communication_config=config)
+            new_device: BaseDevice = LocalDevice(name=name, video_source=video_source, communication_config=config,
+                                                 capture_images=capture_images)
             self.__devices[name] = new_device
         else:
             print('adding remote device ', name)

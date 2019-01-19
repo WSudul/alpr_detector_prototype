@@ -60,19 +60,21 @@ class BaseDevice(ABC):
 
 class LocalDevice(BaseDevice):
 
-    def __init__(self, name: str, video_source: str, communication_config: CommunicationConfiguration) -> None:
+    def __init__(self, name: str, video_source: str, communication_config: CommunicationConfiguration,
+                 capture_images: bool) -> None:
         super().__init__(name, communication_config.command_listener.address, \
                          communication_config.command_listener.port, video_source)
         self.__process: Process = None
         self.__communication_config = communication_config
         self.__command_sender: Client = Client()
+        self.capture_images = capture_images
 
     def get_device_type(self) -> DeviceLocation:
         return DeviceLocation.LOCAL
 
     def __start_detector(self):
         alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
-        detector_arguments = AlprDetectorArgs(self.id, alpr_configuration, self.video_source)
+        detector_arguments = AlprDetectorArgs(self.id, alpr_configuration, self.video_source, self.capture_images)
         new_process_args = DetectorProcessArguments(self.id, detector_arguments, self.__communication_config)
 
         print('Starting new process with config:\n', new_process_args)

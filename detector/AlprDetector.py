@@ -10,7 +10,7 @@ WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 12
 
 AlprConfiguration = namedtuple('AlprConfiguration', 'region, config_file, runtime_data_file, frame_skip')
-AlprDetectorArgs = namedtuple('AlprDetectorArgs', 'instance_name, alpr_configuration, video_source')
+AlprDetectorArgs = namedtuple('AlprDetectorArgs', 'instance_name, alpr_configuration, video_source, capture_images')
 
 
 def video_source_properties(cap):
@@ -24,7 +24,7 @@ def video_source_properties(cap):
 
 class AlprDetector:
 
-    def __init__(self, name, config, video_source, event_callback=None):
+    def __init__(self, name, config, video_source, event_callback=None, save_images=False):
         self.__name = name
         self.__alpr_instance = Alpr(config.region, config.config_file, config.runtime_data_file)
         if not self.__alpr_instance.is_loaded():
@@ -34,6 +34,9 @@ class AlprDetector:
         self.__video_source = video_source
         self.__cap = cv2.VideoCapture(video_source)
         self.__running = False
+        self.__save_image = save_images
+        import os
+        self.__directory = os.getcwd()
 
     def is_working(self):
         return self.__cap.isOpened() and self.__running
@@ -70,6 +73,7 @@ class AlprDetector:
             # object is list of dict containing 'plate' and 'confidence'
             callback_data['candidates'] = extracted_results
             callback_data['detector'] = self.__name
+            print('calling callback')
             self.event_callback(callback_data)
 
     def run(self):
@@ -89,6 +93,7 @@ class AlprDetector:
         try:
             print(self.__name, ' starting detector loop for: ', self.__video_source)
             while self.__running:
+                a = datetime.datetime.now()
                 last_read_status, frame = self.__cap.read()
                 if not last_read_status:
                     print('Video capture.read() failed. Stopping the work')
@@ -110,10 +115,27 @@ class AlprDetector:
                 best_candidate = self.__extract_best_candidate(results)
                 if best_candidate is not None and best_candidate != last_recognized_plate:
                     last_recognized_plate = best_candidate
+                    print(best_candidate)
                     # send first recognized plate and all candidates
                     extracted_results = self.__extract_results(results)
                     if extracted_results:
                         self.__handle_results(extracted_results)
+
+                    if self.__save_image:
+                        print(self.__directory)
+                        import os.path
+                        cv2.imwrite(os.path.join(self.__directory,
+                                                 self.__name,
+                                                 ''.join((best_candidate, '_',
+                                                          self.__name, '_',
+                                                          datetime.datetime.now().strftime(
+                                                              "%Y_%m_%d_%H_%M_%S"),
+                                                          '.jpeg'))), frame)
+
+                # b = datetime.datetime.now()
+                # c = b - a
+                # print('elapsed time ', c.seconds * 1000 + c.microseconds / 1000, 'ms')
+
 
         except cv2.error as e:
             print("OpenCV Exception caught: ", e)

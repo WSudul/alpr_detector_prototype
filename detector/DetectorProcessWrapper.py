@@ -30,10 +30,10 @@ class DetectorManager:
         self.__client = Client(address=communication_configuration.server.address,
                                port=communication_configuration.server.port,
                                context=self.__context)
-        self.__detector = AlprDetector(detector_args.instance_name, detector_args.alpr_configuration,
-                                       detector_args.video_source,
-                                       self.__client.send_message)
-        # todo add communication to stop/start detection - xmlrpc from standard lib?
+        self.__detector = AlprDetector(name=detector_args.instance_name, config=detector_args.alpr_configuration,
+                                       video_source=detector_args.video_source,
+                                       event_callback=self.__client.send_message,
+                                       save_images=detector_args.capture_images)
 
     def run(self):
 
@@ -142,7 +142,7 @@ def main():
     executor = ProcessPoolExecutor(max_workers=3)
 
     alpr_configuration = create_configuration()
-    detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, VIDEO_SOURCE_FILE)
+    detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, VIDEO_SOURCE_FILE, False)
     new_process_args = DetectorProcessArguments('1', detector_arguments,
                                                 CommunicationConfiguration(
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
@@ -150,14 +150,14 @@ def main():
 
     future_1 = executor.submit(start_detector_process, new_process_args)
 
-    detector_arguments = AlprDetectorArgs('detector2', alpr_configuration, VIDEO_SOURCE)  # VIDEO_SOURCE)
+    detector_arguments = AlprDetectorArgs('detector2', alpr_configuration, VIDEO_SOURCE, False)  # VIDEO_SOURCE)
     new_process_args = DetectorProcessArguments('2', detector_arguments,
                                                 CommunicationConfiguration(
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT + 2)))
     future_2 = executor.submit(start_detector_process, new_process_args)
 
-    detector_arguments = AlprDetectorArgs('detector3', alpr_configuration, None)  # using 2nd webcam
+    detector_arguments = AlprDetectorArgs('detector3', alpr_configuration, None, False)  # using 2nd webcam
     new_process_args = DetectorProcessArguments('3', detector_arguments,
                                                 CommunicationConfiguration(
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
