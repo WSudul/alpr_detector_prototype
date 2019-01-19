@@ -47,7 +47,7 @@ def status():
 
 def handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port):
     if name not in device_container:
-        print('Starting new detector process')
+        print('Starting new detector')
 
         if video_source.isdigit():
             print('Interpreting video source as device id')

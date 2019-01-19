@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from multiprocessing import Process
 
+import zmq
+
 from detector.AlprDetector import AlprConfiguration, FRAME_SKIP
 from detector.ConfigRequests import ConfigurationRequest, StateChangeRequest, DetectorState
 from detector.DetectorProcessWrapper import DetectorProcessArguments, AlprDetectorArgs, AddressAndPort, \
@@ -58,9 +60,11 @@ class BaseDevice(ABC):
 
 class LocalDevice(BaseDevice):
 
-    def __init__(self, name, address, listener_port, video_source) -> None:
-        super().__init__(name, address, listener_port, video_source)
+    def __init__(self, name: str, video_source: str, communication_config: CommunicationConfiguration) -> None:
+        super().__init__(name, communication_config.command_listener.address, \
+                         communication_config.command_listener.port, video_source)
         self.__process: Process = None
+        self.__communication_config = communication_config
         self.__command_sender: Client = Client()
 
     def get_device_type(self) -> DeviceLocation:
@@ -68,26 +72,27 @@ class LocalDevice(BaseDevice):
 
     def __start_detector(self):
         alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
-        detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, self.video_source)
-        new_process_args = DetectorProcessArguments(self.id, detector_arguments,
-                                                    CommunicationConfiguration(
-                                                        AddressAndPort(self.address, DEFAULT_DETECTOR_SERVER_PORT),
-                                                        AddressAndPort(self.address,
-                                                                       self.listener_port)))
+        detector_arguments = AlprDetectorArgs(self.id, alpr_configuration, self.video_source)
+        new_process_args = DetectorProcessArguments(self.id, detector_arguments, self.__communication_config)
 
         print('Starting new process with config:\n', new_process_args)
         self.__process = Process(target=start_detector_process, args=(new_process_args,))
         self.__process.start()
         command_listener_config = new_process_args.communication_config.command_listener
-        self.__command_sender.connect(command_listener_config.address, command_listener_config.port)
+        try:
+            self.__command_sender.connect(command_listener_config.address, command_listener_config.port)
+        except zmq.ZMQError as e:
+            print('Exception thrown when connecting command sender', e, ' - ', e.errno)
 
     def start(self) -> bool:
+        print('Starting local device')
         if DeviceStatus.OFF == self.get_device_status():
             self.__start_detector()
 
         return super().start()
 
     def stop(self):
+        print('Stopping local device')
         if DeviceStatus.ON == self.get_device_status():
             stop_request = StateChangeRequest(DetectorState.OFF)
             response = self.__command_sender.send_message(stop_request)

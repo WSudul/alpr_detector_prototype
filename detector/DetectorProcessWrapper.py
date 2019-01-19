@@ -38,7 +38,7 @@ class DetectorManager:
     def run(self):
 
         print('starting detector process')
-        print('properties\n:', self.__detector.video_source_properties())
+        print('properties:', self.__detector.video_source_properties())
         self.__command_listener.run()
 
         self.__state = DetectorState.ON

@@ -26,12 +26,19 @@ def message_handler(message):
     print('handling message: ', message)
 
 
-ipc_server = AsyncServer(SERVER_PREFIX, DEFAULT_DETECTOR_SERVER_PORT, message_handler)
+ipc_server = AsyncServer(message_handler)
 
 
 def create_app(config_class=Config):
     print('using create_app to create flask app object')
-    ipc_server.run()
+    import zmq.error
+    try:
+        ipc_server.bind(SERVER_PREFIX, DEFAULT_DETECTOR_SERVER_PORT)
+        # ipc_server.bind(SERVER_PREFIX_LOCAL, DEFAULT_DETECTOR_SERVER_PORT)
+        ipc_server.run()
+    except zmq.ZMQError as e:
+        print('Exception during bind process: ', e, ' - ', e.errno)
+        exit(-1)
 
     app = Flask(__name__)
     app.config.from_object(config_class)

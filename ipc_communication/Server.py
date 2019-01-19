@@ -75,7 +75,7 @@ class Server:
 
 
 class AsyncServer(Server):
-    def __init__(self, address, port, message_handler, context=None):
+    def __init__(self, message_handler, address=None, port=None, context=None):
         Server.__init__(self,
                         address=address,
                         port=port,

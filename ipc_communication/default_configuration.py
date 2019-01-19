@@ -1,8 +1,5 @@
-from abc import ABC, abstractmethod
-
-import zmq
-
-DEFAULT_DETECTOR_SERVER_PORT = 8888
+DEFAULT_DETECTOR_SERVER_PORT = 6666
 TCP_PROTOCOL = 'tcp'
-CLIENT_PREFIX = 'tcp://localhost'
+CLIENT_PREFIX = 'tcp://127.0.0.1'
 SERVER_PREFIX = 'tcp://*'
+SERVER_PREFIX_LOCAL = 'tcp://91.223.167.177'
