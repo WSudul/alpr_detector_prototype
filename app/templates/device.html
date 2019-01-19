@@ -3,8 +3,10 @@
 
 
 {% block app_content %}
+
 <body>
 <h1>Manage devices</h1>
+<div style="float:none;">
 <h2>Existing devices</h2>
 <table class="table">
     <thead>
@@ -26,7 +28,10 @@
     {% endfor %}
     </tbody>
 </table>
-</body>
+</div>
+<br>
+
+<div style="float:left;">
 <h2>Create new device</h2>
 <form action="{{ url_for('add_device')  }}" method="post" novalidate>
     {{ create_form.hidden_tag() }}
@@ -76,7 +81,10 @@
     <p>{{ create_form.capture() }} {{ create_form.capture.label }}</p>
     <p>{{ create_form.submit() }}</p>
 </form>
+</div>
+<br>
 
+<div style="float:right;">
 <h2>Update device</h2>
 <form action="{{ url_for('update_device')  }}" method="post" novalidate>
     {{ update_form.hidden_tag() }}
@@ -119,5 +127,7 @@
     <p>{{ update_form.capture() }} {{ update_form.capture.label }}</p>
     <p>{{ update_form.submit() }}</p>
 </form>
-
+</div>
+<br>
+</body>
 {% endblock %}
