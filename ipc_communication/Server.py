@@ -20,7 +20,7 @@ class Server:
 
     @staticmethod
     def __create_full_address(address, port):
-        print(address, ' : ', port)
+        print(address + ':' + str(port))
         return address + ':' + str(port)
 
     def bind(self, address, port, handler=None):
@@ -33,6 +33,7 @@ class Server:
             return
 
         socket = self._context.socket(zmq.REP)
+        print('binding to : ', full_address)
         socket.bind(full_address)
 
         if handler is None:
@@ -56,9 +57,12 @@ class Server:
         self.__poller.unregister(popped_socket)
         self.__sockets.pop(full_address)
 
-    def receive_message(self):
+    DEFAULT_60_SEC_TIMEOUT = 60000
+
+    def receive_message(self, timeout_ms=DEFAULT_60_SEC_TIMEOUT):
         try:
-            events = dict(self.__poller.poll(timeout=1000))
+
+            events = dict(self.__poller.poll(timeout=timeout_ms))
 
             for event in events:
                 socket_data: FullAddressAndHandler = self.__sockets[event]

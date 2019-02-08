@@ -21,7 +21,6 @@ babel = Babel()
 
 device_container = DeviceContainer()
 
-
 def message_handler(message):
     print('handling message: ', message)
 
