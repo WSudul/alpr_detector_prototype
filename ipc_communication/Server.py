@@ -48,7 +48,7 @@ class Server:
         address_socket_dict = {v.address: k for k, v in self.__sockets.items()}
         socket = address_socket_dict.get(full_address, None)
 
-        popped_socket: zmq.Socket = self.__sockets.pop(socket, None)
+        popped_socket = self.__sockets.pop(socket, None)
         if popped_socket is None:
             print('No socket was bound to ', full_address)
             return
@@ -65,7 +65,7 @@ class Server:
             events = dict(self.__poller.poll(timeout=timeout_ms))
 
             for event in events:
-                socket_data: FullAddressAndHandler = self.__sockets[event]
+                socket_data = self.__sockets[event]
 
                 message = event.recv_json()
                 if message is None:
@@ -86,7 +86,7 @@ class AsyncServer(Server):
                         context=context,
                         message_handler=message_handler)
         self.__run = False
-        self.__server_thread: Thread = None
+        self.__server_thread = None
 
     def __run_in_loop(self):
         while self.__run:
