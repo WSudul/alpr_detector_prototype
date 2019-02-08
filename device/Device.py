@@ -26,11 +26,11 @@ class DeviceStatus(Enum):
 class BaseDevice(ABC):
     def __init__(self, name, address, listener_port, video_source) -> None:
         super().__init__()
-        self.id: str = name
-        self.address: str = address
-        self.listener_port: str = str(listener_port)
-        self.video_source: str = video_source
-        self.status: DeviceStatus = DeviceStatus.OFF
+        self.id = name
+        self.address = address
+        self.listener_port = str(listener_port)
+        self.video_source = video_source
+        self.status = DeviceStatus.OFF
 
     @abstractmethod
     def get_device_type(self) -> DeviceLocation:
@@ -62,7 +62,7 @@ class LocalDevice(BaseDevice):
 
     def __init__(self, name: str, video_source: str, communication_config: CommunicationConfiguration,
                  capture_images: bool) -> None:
-        super().__init__(name, communication_config.command_listener.address, \
+        super().__init__(name, communication_config.command_listener.address,
                          communication_config.command_listener.port, video_source)
         self.__process = None
         self.__communication_config = communication_config
@@ -126,7 +126,7 @@ class RemoteDevice(BaseDevice):
 
     def __init__(self, name, address, listener_port, video_source) -> None:
         super().__init__(name, address, listener_port, video_source)
-        self.__command_sender: Client = Client()
+        self.__command_sender = Client()
 
     def get_device_type(self) -> DeviceLocation:
         return DeviceLocation.LOCAL
