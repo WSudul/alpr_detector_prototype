@@ -64,9 +64,9 @@ class LocalDevice(BaseDevice):
                  capture_images: bool) -> None:
         super().__init__(name, communication_config.command_listener.address, \
                          communication_config.command_listener.port, video_source)
-        self.__process: Process = None
+        self.__process = None
         self.__communication_config = communication_config
-        self.__command_sender: Client = Client()
+        self.__command_sender = Client()
         self.capture_images = capture_images
 
     def get_device_type(self) -> DeviceLocation:

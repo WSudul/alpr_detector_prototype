@@ -19,7 +19,7 @@ CommunicationConfiguration = namedtuple('CommunicationConfiguration',
 class DetectorManager:
     def __init__(self, name: str, detector_args: AlprDetectorArgs,
                  communication_configuration: CommunicationConfiguration):
-        self.__state: DetectorState = DetectorState.ON
+        self.__state = DetectorState.ON
         self.__instance_name = name
         self.__current_detector_args = detector_args
         self.__context = zmq.Context()
@@ -68,7 +68,7 @@ class DetectorManager:
     def __handle_command(self, command: DetectorRequest):
         if isinstance(command, DetectorRequest):
             new_state = command.target_state()
-            result: bool = True
+            result = True
             if self.__state == new_state:
                 print('same state encountered. No action performed')
                 result = False

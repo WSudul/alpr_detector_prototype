@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from detector.DetectorProcessWrapper import CommunicationConfiguration, AddressAndPort
-from device.Device import DeviceLocation, LocalDevice, DeviceStatus, BaseDevice, RemoteDevice
+from device.Device import DeviceLocation, LocalDevice, DeviceStatus, RemoteDevice
 from ipc_communication.default_configuration import DEFAULT_DETECTOR_SERVER_PORT, CLIENT_PREFIX
 
 
@@ -26,12 +26,12 @@ class DeviceContainer:
                                                 AddressAndPort(address,
                                                                listener_port))
 
-            new_device: BaseDevice = LocalDevice(name=name, video_source=video_source, communication_config=config,
-                                                 capture_images=capture_images)
+            new_device = LocalDevice(name=name, video_source=video_source, communication_config=config,
+                                     capture_images=capture_images)
             self.__devices[name] = new_device
         else:
             print('adding remote device ', name)
-            new_device: BaseDevice = RemoteDevice(name, address, listener_port, video_source)
+            new_device = RemoteDevice(name, address, listener_port, video_source)
             self.__devices[name] = new_device
 
         return True
@@ -43,28 +43,28 @@ class DeviceContainer:
         return self.__devices.keys()
 
     def get_device_status(self, name: str):
-        device: BaseDevice = self.__devices.get(name, None)
+        device = self.__devices.get(name, None)
         return None if device is None else device.status
 
     def get_device_location(self, name: str):
-        device: BaseDevice = self.__devices.get(name, None)
+        device = self.__devices.get(name, None)
         return None if device is None else device.get_device_type()
 
     def get_device_address(self, name: str):
-        device: BaseDevice = self.__devices.get(name, None)
+        device = self.__devices.get(name, None)
         return None if device is None else (device.address + ':' + device.listener_port)
 
     def start_device(self, name: str) -> bool:
-        device: BaseDevice = self.__devices.get(name, None)
+        device = self.__devices.get(name, None)
         return False if device is None else device.start()
 
     def stop_device(self, name: str) -> bool:
-        device: BaseDevice = self.__devices.get(name, None)
+        device = self.__devices.get(name, None)
         return False if device is None else device.stop()
 
     def handle_device_update(self, name, new_status: DeviceStatus, address=None,
                              listener_port=None, video_source: str = None) -> bool:
-        device: BaseDevice = self.__devices.get(name, None)
+        device = self.__devices.get(name, None)
         if device is None:
             return False
 

@@ -36,8 +36,7 @@ def as_command(data_dict: dict):
         return None
     import json
     if 'device_specific_config' in data_dict:
-        config_dict: dict = json.loads(data_dict['device_specific_config'])
+        config_dict = json.loads(data_dict['device_specific_config'])
         return ConfigurationRequest(**config_dict)
     else:
-
         return StateChangeRequest(json.loads(data_dict['target_state']))
