@@ -6,7 +6,7 @@ import zmq
 
 from detector.AlprDetector import AlprConfiguration, FRAME_SKIP
 from detector.ConfigRequests import ConfigurationRequest, StateChangeRequest, DetectorState
-from detector.DetectorProcessWrapper import DetectorProcessArguments, AlprDetectorArgs, AddressAndPort, \
+from detector.DetectorManager import DetectorProcessArguments, AlprDetectorArgs, AddressAndPort, \
     CommunicationConfiguration, start_detector_process
 from ipc_communication.Client import Client
 from ipc_communication.default_configuration import DEFAULT_DETECTOR_SERVER_PORT
@@ -23,14 +23,21 @@ class DeviceStatus(Enum):
     UNKNOWN = 3
 
 
+class DeviceRole(Enum):
+    ENTRY = 1
+    EXIT = 1
+
+
 class BaseDevice(ABC):
-    def __init__(self, name, address, listener_port, video_source) -> None:
+    def __init__(self, name, address, listener_port, video_source, role, persistence) -> None:
         super().__init__()
         self.id = name
         self.address = address
         self.listener_port = str(listener_port)
         self.video_source = video_source
         self.status = DeviceStatus.OFF
+        self.role = role
+        self.persistence = persistence
 
     @abstractmethod
     def get_device_type(self) -> DeviceLocation:
@@ -59,11 +66,10 @@ class BaseDevice(ABC):
 
 
 class LocalDevice(BaseDevice):
-
-    def __init__(self, name: str, video_source: str, communication_config: CommunicationConfiguration,
-                 capture_images: bool) -> None:
+    def __init__(self, name: str, video_source: str, communication_config: CommunicationConfiguration, role: DeviceRole,
+                 capture_images) -> None:
         super().__init__(name, communication_config.command_listener.address,
-                         communication_config.command_listener.port, video_source)
+                         communication_config.command_listener.port, video_source, role, capture_images)
         self.__process = None
         self.__communication_config = communication_config
         self.__command_sender = Client()
@@ -124,8 +130,8 @@ class LocalDevice(BaseDevice):
 
 class RemoteDevice(BaseDevice):
 
-    def __init__(self, name, address, listener_port, video_source) -> None:
-        super().__init__(name, address, listener_port, video_source)
+    def __init__(self, name, address, listener_port, video_source, role, persistence) -> None:
+        super().__init__(name, address, listener_port, video_source, role, persistence)
         self.__command_sender = Client()
 
     def get_device_type(self) -> DeviceLocation:
@@ -133,7 +139,7 @@ class RemoteDevice(BaseDevice):
 
     def __start_detector(self):
         alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
-        detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, self.video_source)
+        detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, self.video_source, False)
         new_process_args = DetectorProcessArguments(self.id, detector_arguments,
                                                     CommunicationConfiguration(
                                                         AddressAndPort(self.address, DEFAULT_DETECTOR_SERVER_PORT),

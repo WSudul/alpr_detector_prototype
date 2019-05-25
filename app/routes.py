@@ -5,7 +5,7 @@ from werkzeug.urls import url_parse
 from app import device_container, flask_app
 from app.forms import LoginForm, DeviceForm, UpdateDeviceForm
 from app.models import User
-from device.Device import DeviceStatus, DeviceLocation
+from device.Device import DeviceStatus, DeviceLocation, DeviceRole
 
 
 @flask_app.route('/')
@@ -45,7 +45,8 @@ def status():
     return 'Current avaiable sources: \n' + str(device_container.get_list_of_devices())
 
 
-def handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port, capture_images):
+def handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port, role,
+                         capture_images):
     if name not in device_container:
         print('Starting new detector')
 
@@ -53,7 +54,7 @@ def handle_device_update(name, new_status_enum, video_source, location_enum, add
             print('Interpreting video source as device id')
             video_source = int(video_source)
 
-        device_container.add_device(name, location_enum, address, listener_port, video_source, capture_images)
+        device_container.add_device(name, location_enum, address, listener_port, video_source, role, capture_images)
         if DeviceStatus.ON == new_status_enum:
             device_container.start_device(name)
 
@@ -88,44 +89,86 @@ def obtain_device_names(container):
 @flask_app.route('/add_device', methods=['GET', 'POST'])
 def add_device():
     form_create = DeviceForm()
+    form_create.status.choices = [('ON', 'ON'), ('OFF', 'OFF')]
+    form_create.status.default = 'ON'
+    form_create.role.choices = [('ENTRY', 'ENTRY'), ('EXIT', 'EXIT')]
+    form_create.role.default = 'ENTRY'
     # device_names = obtain_device_names(device_container.get_list_of_devices())
     form_update = UpdateDeviceForm()  # UpdateDeviceForm(choices=device_names)
 
-    if form_create.validate_on_submit():
-        print('Adding new device')
-        name = form_create.name.data
-        new_status = form_create.status.data
-        new_status_enum = DeviceStatus[new_status]
-        video_source = form_create.video_source.data
-        location = form_create.location.data
-        location_enum = DeviceLocation[location]
-        address = form_create.address.data
-        listener_port = form_create.listener_port.data
-        capture_images = form_create.capture.data
-        response = handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port,
-                                        capture_images)
-        flash(response)
+    form_update.status.choices = [('ON', 'ON'), ('OFF', 'OFF')]
+    form_update.status.default = 'ON'
+    form_update.role.choices = [('ENTRY', 'ENTRY'), ('EXIT', 'EXIT')]
+    form_update.role.default = 'ENTRY'
 
+    form_update.name.choices = [('', '')]
+    for name in device_container.get_list_of_devices():
+        form_update.name.choices.append((name, name))
+
+    if request.method == 'POST':
+        print("POST ")
+        if form_create.validate_on_submit():
+            print('Adding new device')
+            name = form_create.name.data
+            new_status = form_create.status.data
+            new_status_enum = DeviceStatus[new_status]
+            video_source = form_create.video_source.data
+
+            address = form_create.address.data
+            listener_port = form_create.listener_port.data
+            role = form_create.role.data
+            role_enum = DeviceRole[role]
+            capture_images = form_create.capture.data
+
+            if address is None or any(local in address for local in ['localhost', '127.0.0.1']):
+                location_enum = DeviceLocation.LOCAL
+            else:
+                location_enum = DeviceLocation.NONLOCAL
+
+            response = handle_device_update(name, new_status_enum, video_source, location_enum, address, listener_port,
+                                            role_enum,
+                                            capture_images)
+            flash(response)
+
+    snapshot = device_container.get_devices_snapshot()
+    print(snapshot is None)
     return render_template('device.html', title='WebServer', create_form=form_create, update_form=form_update,
-                           devices=device_container.get_devices_snapshot())
+                           devices=snapshot)
 
 
 @flask_app.route('/update_device', methods=['GET', 'POST'])
 def update_device():
     form_create = DeviceForm()
+    form_create.status.choices = [('ON', 'ON'), ('OFF', 'OFF')]
+    form_create.status.default = 'ON'
+    form_create.role.choices = [('ENTRY', 'ENTRY'), ('EXIT', 'EXIT')]
+    form_create.role.default = 'ENTRY'
     # device_names = obtain_device_names(device_container.get_list_of_devices())
     form_update = UpdateDeviceForm()  # UpdateDeviceForm(choices=device_names)
+
+    form_update.status.choices = [('ON', 'ON'), ('OFF', 'OFF')]
+    form_update.status.default = 'ON'
+    form_update.role.choices = [('ENTRY', 'ENTRY'), ('EXIT', 'EXIT')]
+    form_update.role.default = 'ENTRY'
+
+    form_update.name.choices = [('', '')]
+    for name in device_container.get_list_of_devices():
+        form_update.name.choices.append(name, name)
 
     if form_update.validate_on_submit():
         print('Updating existing device')
         name = form_update.name.data
         new_status = form_update.status.data
         new_status_enum = DeviceStatus[new_status]
+
+        role = form_update.role.data
+        role_enum = DeviceRole[role]
+
         video_source = form_create.video_source.data
         address = form_update.address.data
         listener_port = form_update.listener_port.data
         capture_images = form_update.capture.data
-        response = handle_device_update(name, new_status_enum, video_source, None, address, listener_port,
+        response = handle_device_update(name, new_status_enum, video_source, None, address, listener_port, role_enum,
                                         capture_images)
         flash(response)
 

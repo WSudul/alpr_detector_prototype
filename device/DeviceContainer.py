@@ -1,7 +1,7 @@
 from collections import namedtuple
 
-from detector.DetectorProcessWrapper import CommunicationConfiguration, AddressAndPort
-from device.Device import DeviceLocation, LocalDevice, DeviceStatus, RemoteDevice
+from detector.DetectorManager import CommunicationConfiguration, AddressAndPort
+from device.Device import DeviceLocation, LocalDevice, DeviceStatus, RemoteDevice, DeviceRole
 from ipc_communication.default_configuration import DEFAULT_DETECTOR_SERVER_PORT, CLIENT_PREFIX
 
 
@@ -14,7 +14,7 @@ class DeviceContainer:
         return item in self.__devices
 
     def add_device(self, name: str, device_type: DeviceLocation, address: str, listener_port,
-                   video_source: str, capture_images: bool) -> bool:
+                   video_source: str, role: DeviceRole, capture_images: bool) -> bool:
         if name in self.__devices:
             return False
 
@@ -27,11 +27,12 @@ class DeviceContainer:
                                                                listener_port))
 
             new_device = LocalDevice(name=name, video_source=video_source, communication_config=config,
-                                     capture_images=capture_images)
+                                     capture_images=capture_images, role=role)
             self.__devices[name] = new_device
         else:
             print('adding remote device ', name)
-            new_device = RemoteDevice(name, address, listener_port, video_source)
+            new_device = RemoteDevice(name=name, address=address, listener_port=listener_port,
+                                      video_source=video_source, role=role, persistence=capture_images)
             self.__devices[name] = new_device
 
         return True
@@ -63,7 +64,7 @@ class DeviceContainer:
         return False if device is None else device.stop()
 
     def handle_device_update(self, name, new_status: DeviceStatus, address=None,
-                             listener_port=None, video_source: str = None) -> bool:
+                             listener_port=None, video_source: str = None, capture_images=None) -> bool:
         device = self.__devices.get(name, None)
         if device is None:
             return False
@@ -78,6 +79,8 @@ class DeviceContainer:
                     args['address'] = address
                 if listener_port:
                     args['listener_port'] = listener_port
+                if capture_images:
+                    args['capture_images'] = capture_images
 
                 result = device.update(args)
                 return result
@@ -89,7 +92,7 @@ class DeviceContainer:
             print('Incorrect device status passed to update')
             return False
 
-    DeviceSnapshot = namedtuple('DeviceSnapshot', 'name, status, address, location')
+    DeviceSnapshot = namedtuple('DeviceSnapshot', 'name, status, address, location,gate,persistence')
 
     def get_devices_snapshot(self):
         names = self.get_list_of_devices()
@@ -98,5 +101,15 @@ class DeviceContainer:
             status = self.get_device_status(name)
             address = self.get_device_address(name)
             location = self.get_device_location(name)
-            snapshot.append(DeviceContainer.DeviceSnapshot(name, status, address, location))
+            gate = self.getdevice_role(name)
+            persistence = self.getdevice_persistence(name)
+            snapshot.append(DeviceContainer.DeviceSnapshot(name, status, address, location, gate, persistence))
         return snapshot
+
+    def getdevice_role(self, name):
+        device = self.__devices.get(name, None)
+        return None if device is None else device.role
+
+    def getdevice_persistence(self, name):
+        device = self.__devices.get(name, None)
+        return None if device is None else device.persistence
