@@ -15,6 +15,8 @@
         <th>status</th>
         <th>address</th>
         <th>location</th>
+        <th>gate</th>
+        <th>persistence</th>
     <tr>
     </thead>
     <tbody>
@@ -24,6 +26,8 @@
         <td>{{ d.status }}</td>
         <td>{{ d.address }}</td>
         <td>{{ d.location }}</td>
+        <td>{{ d.gate }}</td>
+        <td>{{ d.persistence }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -44,7 +48,7 @@
     </p>
     <p>
         {{ create_form.status.label }}<br>
-        {{ create_form.status(size=32) }}<br>
+        {{ create_form.status() }}<br>
         {% for error in create_form.status.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
@@ -71,9 +75,9 @@
         {% endfor %}
     </p>
     <p>
-        {{ create_form.location.label }}<br>
-        {{ create_form.location(size=32) }}<br>
-        {% for error in create_form.location.errors %}
+        {{ create_form.role.label }}<br>
+        {{ create_form.role() }}<br>
+        {% for error in create_form.role.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
@@ -90,14 +94,14 @@
     {{ update_form.hidden_tag() }}
     <p>
         {{ update_form.name.label }}<br>
-        {{ update_form.name(size=32) }}<br>
+        {{ update_form.name() }}<br>
         {% for error in update_form.name.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
         {{ update_form.status.label }}<br>
-        {{ update_form.status(size=32) }}<br>
+        {{ update_form.status() }}<br>
         {% for error in update_form.status.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
@@ -119,6 +123,13 @@
     <p>
         {{ update_form.listener_port.label }}<br>
         {{ update_form.listener_port(size=32) }}<br>
+        {% for error in update_form.listener_port.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ update_form.role.label }}<br>
+        {{ update_form.role() }}<br>
         {% for error in update_form.listener_port.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
