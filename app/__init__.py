@@ -1,9 +1,13 @@
+import json
+
+import requests
 from flask import Flask
 from flask_babel import Babel
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from requests import RequestException
 
 from config import Config
 from device.DeviceContainer import DeviceContainer
@@ -21,8 +25,35 @@ babel = Babel()
 
 device_container = DeviceContainer()
 
+
+def prepare_request(message):
+    request_data = dict()
+    request_data['requester'] = 'LOT1'
+    plates = [item[0] for item in message['candidates']]
+    request_data['plates'] = plates
+    return json.dumps(request_data)
+
+
 def message_handler(message):
-    print('handling message: ', message)
+    post_request_data = prepare_request(message)
+
+    endpoint = 'http://localhost:8080/gate/'
+    if message['detector_role'] == 'ENTRY':
+        endpoint += 'entrance'
+    else:
+        endpoint += 'exit'
+    print("endpoint: ", endpoint)
+
+    try:
+        response = requests.post(endpoint, data=post_request_data)
+    except (RequestException, ConnectionError) as e:
+        return False
+
+    if response.status_code is 200:
+        return True
+    else:
+        return False
+    # print('response: ', response.status_code)
 
 
 ipc_server = AsyncServer(message_handler)

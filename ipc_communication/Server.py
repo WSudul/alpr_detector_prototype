@@ -9,7 +9,7 @@ FullAddressAndHandler = namedtuple('FullAddressAndHandler', 'address, callback')
 
 class Server:
     def __init__(self, message_handler, address=None, port=None, context=None):
-        self._context = context if context else zmq.Context()
+        self.__context = context if context else zmq.Context()
         self.__sockets = dict()  # dict of {socket: {Address and Handler}}
 
         self.__default_message_handler = message_handler
@@ -32,7 +32,7 @@ class Server:
             print('Socket was already bound to ', full_address)
             return
 
-        socket = self._context.socket(zmq.REP)
+        socket = self.__context.socket(zmq.REP)
         print('binding to : ', full_address)
         socket.bind(full_address)
 
@@ -99,6 +99,7 @@ class AsyncServer(Server):
             self.__server_thread.start()
 
     def stop(self):
-        self.__sockets.unbind()
+        for socket in self.__sockets:
+            socket.unbind()
         self.__server_thread.join()
         self.__run = False

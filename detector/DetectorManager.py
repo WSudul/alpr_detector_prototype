@@ -4,7 +4,8 @@ from threading import Thread
 import zmq
 
 from detector.AlprDetector import create_configuration, VIDEO_SOURCE, VIDEO_SOURCE_FILE, AlprDetector, AlprDetectorArgs
-from detector.ConfigRequests import DetectorRequest, ConfigurationRequest, DetectorState
+from detector.ConfigRequests import DetectorRequest, ConfigurationRequest
+from detector.DetectorStates import DetectorState
 from ipc_communication.Client import Client
 from ipc_communication.Server import AsyncServer, Server
 from ipc_communication.default_configuration import CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT, SERVER_PREFIX
@@ -21,6 +22,7 @@ class DetectorManager:
                  communication_configuration: CommunicationConfiguration):
         self.__state = DetectorState.ON
         self.__instance_name = name
+        self.__role = detector_args.role
         self.__current_detector_args = detector_args
         self.__context = zmq.Context()
         self.__command_listener = AsyncServer(address=communication_configuration.command_listener.address,
@@ -32,8 +34,9 @@ class DetectorManager:
                                context=self.__context)
         self.__detector = AlprDetector(name=detector_args.instance_name, config=detector_args.alpr_configuration,
                                        video_source=detector_args.video_source,
-                                       event_callback=self.__client.send_message,
-                                       save_images=detector_args.capture_images)
+                                       event_callback=self.__client_send_message,
+                                       save_images=detector_args.capture_images,
+                                       )
 
     def run(self):
 
@@ -104,6 +107,10 @@ class DetectorManager:
 
         return AlprDetectorArgs(config_dict)
 
+    def __client_send_message(self, message):
+        message['detector_role'] = self.__role
+        self.__client.send_message(message)
+
 
 def start_detector_process(args: DetectorProcessArguments):
     print('starting detector process')
@@ -142,7 +149,7 @@ def main():
     executor = ProcessPoolExecutor(max_workers=3)
 
     alpr_configuration = create_configuration()
-    detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, VIDEO_SOURCE_FILE, False)
+    detector_arguments = AlprDetectorArgs('detector1', alpr_configuration, VIDEO_SOURCE_FILE, False, "ENTRY")
     new_process_args = DetectorProcessArguments('1', detector_arguments,
                                                 CommunicationConfiguration(
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
@@ -150,14 +157,16 @@ def main():
 
     future_1 = executor.submit(start_detector_process, new_process_args)
 
-    detector_arguments = AlprDetectorArgs('detector2', alpr_configuration, VIDEO_SOURCE, False)  # VIDEO_SOURCE)
+    detector_arguments = AlprDetectorArgs('detector2', alpr_configuration, VIDEO_SOURCE, False, "ENTRY")
+    # VIDEO_SOURCE)
     new_process_args = DetectorProcessArguments('2', detector_arguments,
                                                 CommunicationConfiguration(
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT + 2)))
     future_2 = executor.submit(start_detector_process, new_process_args)
 
-    detector_arguments = AlprDetectorArgs('detector3', alpr_configuration, None, False)  # using 2nd webcam
+    detector_arguments = AlprDetectorArgs('detector3', alpr_configuration, None, False, "ENTRY")
+    # using 2nd webcam
     new_process_args = DetectorProcessArguments('3', detector_arguments,
                                                 CommunicationConfiguration(
                                                     AddressAndPort(CLIENT_PREFIX, DEFAULT_DETECTOR_SERVER_PORT),

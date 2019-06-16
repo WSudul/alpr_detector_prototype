@@ -5,9 +5,10 @@ from multiprocessing import Process
 import zmq
 
 from detector.AlprDetector import AlprConfiguration, FRAME_SKIP
-from detector.ConfigRequests import ConfigurationRequest, StateChangeRequest, DetectorState
+from detector.ConfigRequests import ConfigurationRequest, StateChangeRequest
 from detector.DetectorManager import DetectorProcessArguments, AlprDetectorArgs, AddressAndPort, \
     CommunicationConfiguration, start_detector_process
+from detector.DetectorStates import DetectorState
 from ipc_communication.Client import Client
 from ipc_communication.default_configuration import DEFAULT_DETECTOR_SERVER_PORT
 
@@ -25,7 +26,7 @@ class DeviceStatus(Enum):
 
 class DeviceRole(Enum):
     ENTRY = 1
-    EXIT = 1
+    EXIT = 2
 
 
 class BaseDevice(ABC):
@@ -80,7 +81,8 @@ class LocalDevice(BaseDevice):
 
     def __start_detector(self):
         alpr_configuration = AlprConfiguration('eu', 'resources/openalpr.conf', 'resources/runtime_data', FRAME_SKIP)
-        detector_arguments = AlprDetectorArgs(self.id, alpr_configuration, self.video_source, self.capture_images)
+        detector_arguments = AlprDetectorArgs(self.id, alpr_configuration, self.video_source, self.capture_images,
+                                              self.role.name)
         new_process_args = DetectorProcessArguments(self.id, detector_arguments, self.__communication_config)
 
         print('Starting new process with config:\n', new_process_args)

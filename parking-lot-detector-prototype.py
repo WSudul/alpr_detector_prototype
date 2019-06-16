@@ -2,18 +2,6 @@ from app import db, flask_app
 from app.models import User
 
 
-def prepare_request(message):
-    # todo implement
-    return message
-
-
-def message_handler(message):
-    print('handling message: ', message)
-    post_request_data = prepare_request(message)
-    # todo use when server is up
-    # response = requests.post('http://localhost:8080/gate/entrance', data=post_request_data)
-    # print('response: ', response.status_code)
-
 
 @flask_app.shell_context_processor
 def make_shell_context():

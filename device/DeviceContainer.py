@@ -25,7 +25,7 @@ class DeviceContainer:
                                                 command_listener=
                                                 AddressAndPort(address,
                                                                listener_port))
-
+            print("role: ", role)
             new_device = LocalDevice(name=name, video_source=video_source, communication_config=config,
                                      capture_images=capture_images, role=role)
             self.__devices[name] = new_device
@@ -101,15 +101,16 @@ class DeviceContainer:
             status = self.get_device_status(name)
             address = self.get_device_address(name)
             location = self.get_device_location(name)
-            gate = self.getdevice_role(name)
-            persistence = self.getdevice_persistence(name)
+            gate = self.get_device_role(name)
+            persistence = self.get_device_persistence(name)
+            print(gate)
             snapshot.append(DeviceContainer.DeviceSnapshot(name, status, address, location, gate, persistence))
         return snapshot
 
-    def getdevice_role(self, name):
+    def get_device_role(self, name):
         device = self.__devices.get(name, None)
         return None if device is None else device.role
 
-    def getdevice_persistence(self, name):
+    def get_device_persistence(self, name):
         device = self.__devices.get(name, None)
         return None if device is None else device.persistence

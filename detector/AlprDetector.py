@@ -10,7 +10,8 @@ WINDOW_NAME = 'openalpr'
 FRAME_SKIP = 12
 
 AlprConfiguration = namedtuple('AlprConfiguration', 'region, config_file, runtime_data_file, frame_skip')
-AlprDetectorArgs = namedtuple('AlprDetectorArgs', 'instance_name, alpr_configuration, video_source, capture_images')
+AlprDetectorArgs = namedtuple('AlprDetectorArgs', 'instance_name, alpr_configuration, video_source, capture_images, '
+                                                  'role')
 
 
 def video_source_properties(cap):
@@ -73,7 +74,7 @@ class AlprDetector:
             # object is list of dict containing 'plate' and 'confidence'
             callback_data['candidates'] = extracted_results
             callback_data['detector'] = self.__name
-            print('calling callback')
+            print('calling callback , ', extracted_results)
             self.event_callback(callback_data)
 
     def run(self):
@@ -106,7 +107,7 @@ class AlprDetector:
                     continue
                 if cv2.waitKey(1) == 27:
                     break
-                cv2.imshow(self.__name, frame)
+                # cv2.imshow(self.__name, frame)
 
                 # todo: use recognize_ndarray when updated to at least 2.3.1
                 # alpr.recognize_ndarray(frame)
