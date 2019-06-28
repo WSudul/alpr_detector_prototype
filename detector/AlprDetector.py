@@ -85,7 +85,8 @@ class AlprDetector:
             self.__running = True
 
         if not self.is_working():
-            print(self.__name, ' Video capture not working.');
+            print(self.__name, ' Video capture not working.')
+            self.__running = False
             return False
 
         frame_number = 0
@@ -132,11 +133,6 @@ class AlprDetector:
                                                           datetime.datetime.now().strftime(
                                                               "%Y_%m_%d_%H_%M_%S"),
                                                           '.jpeg'))), frame)
-
-                # b = datetime.datetime.now()
-                # c = b - a
-                # print('elapsed time ', c.seconds * 1000 + c.microseconds / 1000, 'ms')
-
 
         except cv2.error as e:
             print("OpenCV Exception caught: ", e)

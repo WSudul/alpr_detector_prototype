@@ -58,8 +58,11 @@ class DetectorManager:
                 is_successful = self.__detector.run()
                 if not is_successful:
                     print('detector stopped due to invalid state - quitting run method')
-                    # todo perform any needed cleanup
-                    self.__state = DetectorState.OFF
+                    # the run method can be retried with new configuration
+                    self.__state = DetectorState.ON
+                    from time import sleep
+                    sleep(3)  # needs condtional variable here instead of sleep
+
 
     def __handle_json_command(self, json_data):
         print('handle_command ', str(json_data))
@@ -118,6 +121,7 @@ def start_detector_process(args: DetectorProcessArguments):
     print('Current working directory: ', os.getcwd())
     manager = DetectorManager(args.name, args.detector_args, args.communication_config)
     manager.run()
+
     print('stopping detector process')
 
 
