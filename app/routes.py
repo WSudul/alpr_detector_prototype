@@ -153,7 +153,7 @@ def update_device():
 
     form_update.name.choices = [('', '')]
     for name in device_container.get_list_of_devices():
-        form_update.name.choices.append(name, name)
+        form_update.name.choices.append((name, name))
 
     if form_update.validate_on_submit():
         print('Updating existing device')

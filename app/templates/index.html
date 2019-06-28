@@ -3,9 +3,29 @@
 
 
 {% block app_content %}
-<h1>Hi, {{ current_user.username }}!</h1>
-{% if form %}
-{{ wtf.quick_form(form) }}
-<br>
+<h1>Hello, {{ current_user.username }}!</h1>
+<div class="w-100 container-fluid p-3 border" style="background-color: #eee;">
+    <br>
+    <b>Welcome to Detector System</b>
+    <br>
+    <div class="row">
+        <div class="col-sm-6  float-left">
+            <img src="{{url_for('static', filename='camera_1.jpg')}}" alt="Camera image" width="50%" height="50%">
+        </div>
+        <div class="col-sm-6  float-right">
+            <p>
+                <button type="button" class="btn btn-default btn-sm">
+                    <span class="glyphicon glyphicon-folder-open"></span>
+                </button>
+                <i> Click Manage Devices to start</i>
+            </p>
+
+        </div>
+    </div>
+
+    {% if form %}
+    {{ wtf.quick_form(form) }}
+    <br>
+</div>
 {% endif %}
 {% endblock %}
