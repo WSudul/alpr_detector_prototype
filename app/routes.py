@@ -62,7 +62,7 @@ def handle_device_update(name, new_status_enum, video_source, location_enum, add
     else:
         update_successful = device_container.handle_device_update(name, new_status_enum, address, listener_port,
                                                                   video_source, capture_images)
-        return 'device ' + name + (' not ' if update_successful else ' ') + 'updated'
+        return 'device ' + name + (' ' if update_successful else ' not ') + 'updated'
 
 
 @flask_app.route('/source', methods=['GET'])

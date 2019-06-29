@@ -11,6 +11,7 @@ from requests import RequestException
 
 from config import Config
 from device.DeviceContainer import DeviceContainer
+from gpio.leds import LedController
 from ipc_communication.Server import AsyncServer
 from ipc_communication.default_configuration import SERVER_PREFIX, DEFAULT_DETECTOR_SERVER_PORT
 
@@ -25,34 +26,49 @@ babel = Babel()
 
 device_container = DeviceContainer()
 
+led_controller = LedController()
+
 
 def prepare_request(message):
     request_data = dict()
-    request_data['requester'] = 'LOT1'
+    request_data['requester'] = 'Parking-Krk-1'
     plates = [item[0] for item in message['candidates']]
     request_data['plates'] = plates
     return json.dumps(request_data)
 
 
 def message_handler(message):
+    led_controller.progress()
     post_request_data = prepare_request(message)
 
-    endpoint = 'http://localhost:8080/gate/'
+    base_addr = 'https://test-lot.herokuapp.com'
+    endpoint = base_addr + '/gate/'  # 'http://localhost:8080/parking/gate/'
     if message['detector_role'] == 'ENTRY':
         endpoint += 'entrance'
     else:
-        endpoint += 'exit'
+        endpoint += 'departure'
     print("endpoint: ", endpoint)
 
     try:
-        response = requests.post(endpoint, data=post_request_data)
+        print('sending request to: ', endpoint)
+        headers = {'content-type': 'application/json'}
+        response = requests.post(endpoint, data=post_request_data, headers=headers)
+        result = response.json().get('validation')
     except (RequestException, ConnectionError) as e:
+        print(e)
+        return False
+    print('response = ', response)
+    from time import sleep
+    sleep(0.1)
+
+    if response.status_code is 200 and result is not None and result is True:
+        led_controller.success()
+        return True
+
+    else:
+        led_controller.failure()
         return False
 
-    if response.status_code is 200:
-        return True
-    else:
-        return False
     # print('response: ', response.status_code)
 
 
